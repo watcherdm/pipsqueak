@@ -1,0 +1,24 @@
+{
+  "name": "pipsqueak",
+  "version": "1.0.0",
+  "description": "Personal Information Protection and Audit Logging",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/webspinner/pipsqueak.git"
+  },
+  "keywords": [
+    "pii",
+    "hiipa",
+    "developer"
+  ],
+  "author": "Gabriel Hernandez <webspinner.gabriel@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/webspinner/pipsqueak/issues"
+  },
+  "homepage": "https://github.com/webspinner/pipsqueak#readme"
+}
