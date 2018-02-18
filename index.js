@@ -1,10 +1,10 @@
 class SecureString extends Object {
-  constructor(key, value, defaultValue) {
+  constructor(pip, key, value, defaultValue) {
     super(value)
     this.valueOf = () => { return defaultValue }
     this.toString = this.valueOf
     this.track = () => {
-      console.error(`user saw ${key}`)
+      pip.post('/squeak', {key: key})
     }
     this.squeak = () => {
       this.track()
@@ -38,7 +38,7 @@ class PipSqueak extends Object {
     const self = this
     return Object.keys(payload).reduce(function secureValues(mem, key) {
       if (typeof payload[key] !== 'object') {
-        mem[key] = (mask.hasOwnProperty(key)) ? new SecureString(key, payload[key], mask[key]) : payload[key]
+        mem[key] = (mask.hasOwnProperty(key)) ? new SecureString(self, key, payload[key], mask[key]) : payload[key]
       } else {
         mem[key] = self.applyMask(payload[key], mask[key])
       }
@@ -68,7 +68,7 @@ class PipSqueak extends Object {
       request.addEventListener("error", reject.bind(request))
       request.addEventListener("abort", reject.bind(request))
       request.open(method, url)
-      request.send(data)
+      request.send(JSON.stringify(data))
     }).then((response) => {
       const payload = JSON.parse(response.currentTarget.response)
       return this.applyMask(payload, this.getMask(method, path))

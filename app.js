@@ -3,9 +3,9 @@ var pip = new PipSqueak({})
 
 pip.get('/person').then(person => {
   $("body").html(`
-    <h2 data-pii="name">${person.name}</h2>
-    <h2 data-pii="phone"">${person.phone}</h2>
-    <div data-pii="address">${person.address.street} ${person.address.city}, ${person.address.state} ${person.address.zip}</div>
+    <h2>Name:</h2><h2 data-pii="name">${person.name}</h2>
+    <h2>Phone:</h2><h2 data-pii="phone"">${person.phone}</h2>
+    <div>Address</div><div data-pii="address">${person.address.street} ${person.address.city}, ${person.address.state} ${person.address.zip}</div>
   `)
   $("body").on('click', '[data-pii]', function(event){
     const prop = $(event.target).data('pii')

@@ -58,6 +58,17 @@ http.createServer((req, res) => {
   } else if (req.url === '/mask' && req.method === 'GET') {
     res.writeHead(200, {'Content-Type': 'application/json'})
     res.end(JSON.stringify(maskSet))
+  } else if (req.url === '/squeak' && req.method === 'POST') {
+    let body = [];
+    req.on('data', (chunk) => {
+      body.push(chunk);
+    }).on('end', () => {
+      body = JSON.parse(Buffer.concat(body).toString());
+      fs.appendFile('squeak.log', `${(new Date()).getTime()}:: ${body.key} seen by user\n`, () => {
+        res.writeHead(200, {'Content-Type': 'application/json'})
+        res.end(JSON.stringify({squeak: true}))
+      })
+    });
   }
 
 }).listen(5000)
