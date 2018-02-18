@@ -4,12 +4,14 @@ class SecureString extends Object {
     this.valueOf = () => { return defaultValue }
     this.toString = this.valueOf
     this.track = () => {
-      pip.post('/squeak', {key: key})
+      return pip.post('/squeak', {key: key})
     }
     this.squeak = () => {
-      this.track()
-      this.valueOf = () => { return atob(value) }
-      this.toString = this.valueOf
+      return this.track().then(() => {
+        this.valueOf = () => { return atob(value) }
+        this.toString = this.valueOf
+        return this.valueOf()   
+      })
     }    
   }
 }

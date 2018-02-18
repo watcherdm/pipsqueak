@@ -10,17 +10,19 @@ pip.get('/person').then(person => {
   $("body").on('click', '[data-pii]', function(event){
     const prop = $(event.target).data('pii')
     if (person[prop].squeak) {
-      person[prop].squeak()
-      $(event.target).attr("data-pii", null)
-      $(event.target).text(person[prop])
+      person[prop].squeak().then(() => {
+        $(event.target).attr("data-pii", null)
+        $(event.target).text(person[prop])
+      })
     } else {
-      const address = Object.keys(person[prop]).map(key => {
+      Promise.all(Object.keys(person[prop]).map(key => {
         const value = person[prop][key]
-        value.squeak();
-        return value;
-      }).join(' ')
-      $(event.target).attr("data-pii", null)
-      $(event.target).text(address)
+        return value.squeak();
+      })).then(([...values]) => {
+        const address = values.join(' ')
+        $(event.target).attr("data-pii", null)
+        $(event.target).text(address)
+      })
     }
   })
 })
