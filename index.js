@@ -1,10 +1,10 @@
 class SecureString extends Object {
-  constructor(value) {
+  constructor(key, value, defaultValue) {
     super(value)
-    this.valueOf = () => { return defaults[map[value]] }
+    this.valueOf = () => { return defaultValue }
     this.toString = this.valueOf
     this.track = () => {
-      console.error(`user saw ${map[value]}`)
+      console.error(`user saw ${key}`)
     }
     this.squeak = () => {
       this.track()
@@ -18,8 +18,12 @@ class PipSqueak extends Object {
   constructor(options) {
     super(options)
     this.host = options.host || window.location.origin
-    this.map = options.map || {}
-    this.defaults = options.defaults || {}
+    this.mask = options.mask || null
+    if (this.mask === null) {
+      this.get('/mask').then(mask => {
+        this.mask = mask
+      }) 
+    }
     if (options.tracking) {
       this.configureTracking(options.tracking)
     }
@@ -27,20 +31,27 @@ class PipSqueak extends Object {
   configureTracking(options) {
     this.trackingOptions = options
   }
-  getMask() {
-    // fetch the mask from the pipsqueak server
+  getMask(method, url) {
+    return (((this.mask || {})[method]||{})[url]||{})
   }
-  getDefaults() {
-    // fetch the defaults from the pipsqueak server
-
+  applyMask(payload, mask = {}) {
+    const self = this
+    return Object.keys(payload).reduce(function secureValues(mem, key) {
+      if (typeof payload[key] !== 'object') {
+        mem[key] = (mask.hasOwnProperty(key)) ? new SecureString(key, payload[key], mask[key]) : payload[key]
+      } else {
+        mem[key] = self.applyMask(payload[key], mask[key])
+      }
+      return mem;
+    }, {})
   }
   updateProgress() {
-    console.log('update progress', argument)
+    console.log('update progress', arguments)
   }
-  request(method, url, data) {
+  request(method, path, data) {
+    let url = path
     if (url.indexOf('//') === -1) {
-      // probably missing host, add host config to url
-      url = `${this.host}/${url}`
+      url = `${this.host}${url}`
     }
     if (method === 'GET' && data !== undefined) {
       const queryString = Object.keys(data).reduce((mem, key) => {
@@ -53,13 +64,14 @@ class PipSqueak extends Object {
     return new Promise((resolve, reject) => {
       const request = new XMLHttpRequest();
       request.addEventListener("progress", this.updateProgress)
-      request.addEventListener("load", resolve)
-      request.addEventListener("error", reject)
-      request.addEventListener("abort", reject)
+      request.addEventListener("load", resolve.bind(request))
+      request.addEventListener("error", reject.bind(request))
+      request.addEventListener("abort", reject.bind(request))
       request.open(method, url)
       request.send(data)
     }).then((response) => {
-      console.log(response)
+      const payload = JSON.parse(response.currentTarget.response)
+      return this.applyMask(payload, this.getMask(method, path))
     }).catch((response) => {
       console.error(response)
     })
